@@ -220,6 +220,7 @@
                {== $this_state dxState_CalibrationWarn}
                {== $this_state dxState_PrecisionWarn}
                {== $this_state dxState_CalibrationInGame}
+               {== $this_state dxState_BotSettings}
                {== $this_state dxState_SaveWarnError}
                {== $this_state dxState_SaveWarnErrorAV}
                {&& {== $this_state dxState_TextureMenu} $dx_customizer {$this in_game}}
@@ -285,6 +286,12 @@
       {if_else {$this in_game}
          {$current_list set_type overshell_menu_ingame}
          {$current_list set_type overshell_menu}
+      }
+
+      ;this is so lazy, please rewrite bot settings to not use a slider
+      {if {== $this_state dxState_BotSettings}
+         {set $current_list options_audio.lst}
+         {set $dx_picked_view options_audio}
       }
       ;circular breaks things
       ;{set $options_circular {>= {size $this_list_content} 12}}
@@ -462,7 +469,7 @@
          {{{coop_track_panel find tracker_broadcast_display} find band_message.lbl} set_showing TRUE}
          {{coop_track_panel find tracker_broadcast_display} set_challenge_type kTrackerChallengeType_Streak}
          {{coop_track_panel find tracker_broadcast_display} set_display_type kBroadcastTrackerDisplay_BandMessage}
-         {{coop_track_panel find tracker_broadcast_display} show_brief_band_message {symbol {sprintf "%s <alt>%s</alt>: %s" $user_name $track_icon $message}}}
+         {{coop_track_panel find tracker_broadcast_display} show_brief_band_message {symbol {sprintf "%s <alt>%s</alt>: %s" $user_name $track_icon {localize $message}}}}
          {unless {session_mgr is_local}
             {session send_msg_to_all
                {'`' 
@@ -472,7 +479,7 @@
                         {{{coop_track_panel find tracker_broadcast_display} find band_message.lbl} set_showing TRUE}
                         {{coop_track_panel find tracker_broadcast_display} set_challenge_type kTrackerChallengeType_Streak}
                         {{coop_track_panel find tracker_broadcast_display} set_display_type kBroadcastTrackerDisplay_BandMessage}
-                        {{coop_track_panel find tracker_broadcast_display} show_brief_band_message {symbol {sprintf "%s <alt>%s</alt>: %s" {',' $user_name} {',' $track_icon} {',' $message}}}}
+                        {{coop_track_panel find tracker_broadcast_display} show_brief_band_message {symbol {sprintf "%s <alt>%s</alt>: %s" {',' $user_name} {',' $track_icon} {',' {localize $message}}}}}
                      }
                   )
                   kNetReliable
@@ -481,12 +488,12 @@
          }
       }
       {do ;if not in-game, use passive_messages_panel instead to show a chat message
-         {passive_messages_panel queue_message {symbol {sprintf "%s: %s" $user_name $message}}}
+         {passive_messages_panel queue_message {symbol {sprintf "%s: %s" $user_name {localize $message}}}}
          {unless {session_mgr is_local}
             {session send_msg_to_all
                {'`' 
                   (
-                     {passive_messages_panel queue_message {symbol {sprintf "%s: %s" {',' $user_name} {',' $message}}}}
+                     {passive_messages_panel queue_message {symbol {sprintf "%s: %s" {',' $user_name} {',' {localize $message}}}}}
                   )
                   kNetReliable
                }

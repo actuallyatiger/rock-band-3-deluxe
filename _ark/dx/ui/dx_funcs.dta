@@ -55,7 +55,7 @@
    {if
       {&&
          {session_mgr is_leader_local}
-         $dx_random_backup_band
+         $dx_rotate_backup_band
       }
       {prefab_mgr assign_prefabs_to_slots}
       {char_sync update_char_cache}
@@ -345,6 +345,33 @@
          ($search_start {- $search_end {strlen $needle}})
          ($search_str {substr $str $search_start $search_end})
          {strieq $search_str $needle}
+      }
+   }
+}
+{func dx_unlock_pre_orders
+   ($user)
+   {if {== {ui current_screen} main_hub_screen}
+      {switch {$user get_slot_num}
+         (0
+            {main_hub_panel unlock_gamestop_award 0}
+            {main_hub_panel unlock_x79_award 0}
+            {main_hub_panel unlock_d2010_award 0}
+         )
+         (1
+            {main_hub_panel unlock_gamestop_award 1}
+            {main_hub_panel unlock_x79_award 1}
+            {main_hub_panel unlock_d2010_award 1}
+         )
+         (2
+            {main_hub_panel unlock_gamestop_award 2}
+            {main_hub_panel unlock_x79_award 2}
+            {main_hub_panel unlock_d2010_award 2}
+         )
+         (3
+            {main_hub_panel unlock_gamestop_award 3}
+            {main_hub_panel unlock_x79_award 3}
+            {main_hub_panel unlock_d2010_award 3}
+         )
       }
    }
 }
