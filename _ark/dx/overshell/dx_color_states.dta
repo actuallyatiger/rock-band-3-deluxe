@@ -1,4 +1,3 @@
-{push_back $dx_settings_main
    (dxState_ColorSelector
       (view
          os_setguitarcol
@@ -17,8 +16,7 @@
       )
       (cancel {dx_state dxState_TextureMenu})
    )
-}
-{push_back $dx_settings_main
+
    (dxState_GuitarColorSelector
       (view
          os_gems
@@ -32,9 +30,7 @@
       )
       (cancel {dx_state dxState_ColorSelector})
    )
-}
 
-{push_back $dx_settings_main
    (dxState_GuitarGemColorSelector
       (view
          {if_else {== $dx_guitar_gem_color1 0} os_dx_1_green 0}
@@ -100,9 +96,7 @@
       )
       (cancel {dx_state dxState_GuitarColorSelector})
    )
-}
 
-{push_back $dx_settings_main
    (dxState_GuitarSustainColorSelector
       (view
          {if_else {== $dx_guitar_sustain_color1 0} os_dx_1_green 0}
@@ -168,9 +162,7 @@
       )
       (cancel {dx_state dxState_GuitarColorSelector})
    )
-}
 
-{push_back $dx_settings_main
    (dxState_GuitarSmasherColorSelector
       (view
          {if_else {== $dx_guitar_smasher_color1 0} os_dx_1_green 0}
@@ -236,9 +228,7 @@
       )
       (cancel {dx_state dxState_GuitarColorSelector})
    )
-}
 
-{push_back $dx_settings_main
    (dxState_DrumColorSelector
       (view
          os_toms
@@ -252,9 +242,7 @@
       )
       (cancel {dx_state dxState_ColorSelector})
    )
-}
 
-{push_back $dx_settings_main
    (dxState_DrumTomColorSelector
       (view
          {if_else {== $dx_drum_tom_color1 0} os_dx_1_red 0}
@@ -300,9 +288,7 @@
       )
       (cancel {dx_state dxState_DrumColorSelector})
    )
-}
 
-{push_back $dx_settings_main
    (dxState_DrumCymbalColorSelector
       (view
          {if_else {== $dx_drum_cymbal_color1 0} os_dx_1_red 0}
@@ -348,9 +334,7 @@
       )
       (cancel {dx_state dxState_DrumColorSelector})
    )
-}
 
-{push_back $dx_settings_main
    (dxState_DrumSmasherColorSelector
       (view
          {if_else {== $dx_drum_smasher_color1 0} os_dx_1_red 0}
@@ -396,9 +380,7 @@
       )
       (cancel {dx_state dxState_DrumColorSelector})
    )
-}
 
-{push_back $dx_settings_main
    (dxState_ProtarColorSelector
       (view
          {if_else {== $dx_guitar_gem_color1 0} os_dx_1_green 0}
@@ -488,7 +470,6 @@
       )
       (cancel {dx_state dxState_ColorSelector})
    )
-}
 
 #define DX_TRANSLATE_RGB_VARIABLES_TO_LOCAL
 (
@@ -609,7 +590,6 @@
    }
 )
 
-{push_back $dx_settings_main
    (dxState_rgbcolormenu
       (view
          {if_else {&& $dx_list_item_selected {!= $dx_list_pos 0}} os_blnk os_reset}
@@ -629,7 +609,7 @@
          {set $dx_pos_current_interval {elem $dx_pos_interval_list $dx_pos_remapper_array_number}} ;1 unit
          DX_TRANSLATE_RGB_VARIABLES_TO_LOCAL
          {do
-            ($arr {find $dx_settings_main $this_state view})
+            ($arr {find $syscfg dx_settings $this_state view})
             ($data {array 0})
             {foreach $entry $arr
                {if {!= $entry view}
@@ -641,21 +621,24 @@
 
          ;setup our preview texture object
          {if {! {exists preview.grp}}
-            {new Group preview.grp}
-            {top_bg.grp add_object preview.grp}
-            {preview.grp set_trans_parent top_bg.grp}
-            {new Tex preview.tex}
-            {new Mesh preview.mesh}
-            {new Mat preview.mat}
+            {do
+               ($group {if_else {$this in_game} "all.grp" "top_bg.grp"})
+               {new Group preview.grp}
+               {$group add_object preview.grp}
+               {preview.grp set_trans_parent $group}
+               {new Tex preview.tex}
+               {new Mesh preview.mesh}
+               {new Mat preview.mat}
+            }
          }
          {preview.mat set diffuse_tex preview.tex}
          {preview.mat set blend kBlendSrcAlpha}
          {preview.mesh set mat preview.mat}
-         {dx_generate_quad_mesh preview.mesh {* 0.4 500} {* 0.05 500}}
+         {dx_generate_quad_mesh preview.mesh {* 0.4 {if_else {$this in_game} 30 500}} {* 0.05 {if_else {$this in_game} 30 500}}}
          {preview.mesh set_trans_parent preview.grp}
          {preview.grp add_object preview.mesh}
          {preview.grp set_showing TRUE}
-         {preview.grp set_local_pos 7 0 {+ 80 {* 0.2 200}}}
+         {preview.grp set_local_pos {if_else {$this in_game} 0 7} 0 {+ {if_else {$this in_game} 20 80} {* 0.2 {if_else {$this in_game} 1 200}}}}
          {preview.mesh set_showing TRUE}
          {preview.tex set_bitmap {sprint "dx/custom_textures/_additional_textures/generic_white_box.png"}}
          {preview.tex iterate_refs $ref {$ref set color {pack_color $dx_set_ui_rgb_r $dx_set_ui_rgb_g $dx_set_ui_rgb_b}}}
@@ -682,13 +665,13 @@
             {switch $action
                ((kAction_Left kAction_Down)
                   {if {>= {eval {var {sprint $this_var}}} 0.01}
-                     {set_var {sprint $this_var} {- {eval {var $this_var}} 0.01}}
+                     {set_var {sprint $this_var} {- {eval {var {sprint $this_var}}} 0.01}}
                   }
                   {preview.tex iterate_refs $ref {$ref set color {pack_color $dx_set_ui_rgb_r $dx_set_ui_rgb_g $dx_set_ui_rgb_b}}}
                )
                ((kAction_Right kAction_Up)
                   {if {<= {eval {var {sprint $this_var}}} 0.99}
-                     {set_var {sprint $this_var} {+ {eval {var $this_var}} 0.01}}
+                     {set_var {sprint $this_var} {+ {eval {var {sprint $this_var}}} 0.01}}
                   }
                   {preview.tex iterate_refs $ref {$ref set color {pack_color $dx_set_ui_rgb_r $dx_set_ui_rgb_g $dx_set_ui_rgb_b}}}
                )
@@ -729,7 +712,7 @@
                      (highway_overdrive_text {dx_state dxState_TrackHighwayOverdrive})
                      (highway_username_text {dx_state dxState_TrackHighwayUsername})
                      (highway_streak_text {dx_state dxState_TrackHighwayStreak})
-                     (lyric_highlight {dx_state dxState_InGameHUD})
+                     (lyric_highlight {dx_state dxState_LyricDisplay})
                   }
                }
             }
@@ -742,7 +725,6 @@
          (kAction_Right LIST_COLOR_DIREC)
       )
    )
-}
 
 
 

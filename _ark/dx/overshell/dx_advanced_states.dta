@@ -1,39 +1,35 @@
-{push_back $dx_settings_main
    (dxState_Advanced
       (view
-         os_ingame_hud
-         os_track_hud
-         os_menu_options
-         os_quick_chat
+         #ifndef HX_WII os_menu_options #endif
          os_functional_options
-         ;only show the controller menu when not in-game and only on applicable instruments or when faking is active
-         {if_else {&& {session_mgr is_local} {! {session is_in_game}}} ;prevents soft-lock, swapping instrument type in-game would prevent player from rejoining
-            os_controller
-            0
-         }
+         os_pedantic_settings
          {if_else {session_mgr is_local}
             os_debug
             0
          }
+         #ifdef HX_XBOX
+         #ifdef RB3E
+         #ifndef RB3E_EMULATOR
+         os_reboot
+         #endif
+         #endif
+         #endif
       )
       (select
-         (os_ingame_hud {dx_state dxState_InGameHUD})
-         (os_track_hud {dx_state dxState_TrackHUD})
          (os_menu_options {dx_state dxState_MenuOptions})
-         (os_quick_chat {dx_state dxState_ChatSettings})
+         (os_pedantic_settings {dx_state dxState_WhoCares})
          (os_functional_options {dx_state dxState_FunctionalOptions})
-         (os_controller {dx_state dxState_ControllerMenu})
          (os_debug
             ;{if_else $dx_debug_first
             ;   {dx_state dxState_DebugWarn}
                {dx_state dxState_Debug}
             ;}
          )
+         (os_reboot {dx_state dxState_RebootWarn})
       )
       (cancel {dx_state dxState_DeluxeSettings})
    )
-}
-{push_back $dx_settings_main
+
    (dxState_MenuOptions
       #define SET_STRIP_COLOR
       (
@@ -42,15 +38,14 @@
       (view
          #ifndef HX_WII
          {if_else $dx_song_select_rings os_song_rings_on os_song_rings_off}
+         #ifndef RB3E
          {if_else $dx_more_info_toggle os_more_info_toggle_on os_more_info_toggle_off}
+         #endif
          {switch $dx_instrument_icons
             (rb3 os_icons_rb3)
             (rb4 os_icons_rb4)
          }
-         {if_else $dx_player_icons os_player_icons_on os_player_icons_off}
          #endif
-         os_menu_theme
-         os_menu_color
       )
       (enter
          SET_STRIP_COLOR
@@ -70,13 +65,6 @@
             {if {== {ui current_screen} song_select_screen}
                {song_select_panel refresh_selected_song}
             }
-         )
-         (os_menu_theme {dx_state dxState_MenuTheme})
-         (os_menu_color
-            ;setup/reset the list tracking info
-            {set $dx_list_item_selected FALSE}
-            {set $dx_list_pos 0}
-            {dx_state dxState_MenuColor}
          )
          (os_icons_rb3
             {set $dx_instrument_icons rb4}
@@ -108,29 +96,13 @@
             {set $dx_icon_real_bass "b"}
             {set $dx_icon_drum_pro "d"}
          )
-         (os_player_icons
-            {set $dx_player_icons {! $dx_player_icons}}
-            {if_else $dx_player_icons
-               {set $dx_overshell_platform wii}
-               #ifdef HX_PS3
-               {set $dx_overshell_platform ps3}
-               #endif
-               #ifdef HX_XBOX
-               {set $dx_overshell_platform xbox}
-               #endif
-            }
-            {overshell exit}
-            {overshell enter}
-            SET_STRIP_COLOR
-         )
       )
       (cancel
          {dx_state dxState_Advanced}
          SET_STRIP_COLOR
       )
    )
-}
-{push_back $dx_settings_main
+
    (dxState_MenuTheme
       (view
          os_rb3_menu_theme
@@ -155,10 +127,9 @@
          )
          
       )
-      (cancel {dx_state dxState_MenuOptions})
+      (cancel {dx_state dxState_MenuThemer})
    )
-}
-{push_back $dx_settings_main
+
    (dxState_MenuColor
       (message pos_remap_desc)
       (view
@@ -240,7 +211,7 @@
          (kAction_Cancel
             {if_else $dx_list_item_selected
                {set $dx_list_item_selected FALSE}
-               {dx_state dxState_MenuOptions}
+               {dx_state dxState_MenuThemer}
             }
          )
          ;if we pressed Up or Down while inside a selected list item
@@ -251,8 +222,7 @@
          (kAction_Right LIST_DIREC)
       )
    )
-}
-{push_back $dx_settings_main
+
    (dxState_FunctionalOptions
       (view
          #ifndef HX_WII
@@ -267,7 +237,7 @@
             os_dx_mic_od_unknown
          }
          {if_else $dx_additional_parts os_additional_parts_on os_additional_parts_off}
-         {if_else $dx_song_delay os_songdelay_on os_songdelay_off}
+         ;{if_else $dx_song_delay os_songdelay_on os_songdelay_off}
          #ifndef HX_WII
          {switch $dx_current_intro_movie
             (deluxe os_intro_deluxe)
@@ -322,8 +292,7 @@
          {dx_state dxState_Advanced}
       )
    )
-}
-{push_back $dx_settings_main
+
    (dxState_LogSettings
       (view
          os_logging_disable_all
@@ -352,8 +321,7 @@
       )
       (cancel {dx_state dxState_Debug})
    )
-}
-{push_back $dx_settings_main
+
    (dxState_Debug
       #ifdef HX_XBOX
       #define DX_SONGS_UPDATES_FILE_PATH
@@ -400,7 +368,9 @@
       #endif
       (view
          os_debug_mode
+         #ifdef RB3DX_DEV
          os_milo
+         #endif
          os_logging
          #ifdef HX_PS3
          {if_else {file_exists DX_HI_MEM_PATH}
@@ -518,8 +488,7 @@
          {dx_state dxState_Advanced}
       )
    )
-}
-{push_back $dx_settings_main
+
    (dxState_PositionRemapper
       (view
          {if_else {&& $dx_list_item_selected {!= $dx_list_pos 0}} os_blnk os_reset}
@@ -733,7 +702,6 @@
                   }
                   {dx_set_star_display_pos}
                   {dx_set_scoreboard_pos}
-                  {dx_fix_new_song_progress_pos}
                }
             )
             (solo_box
@@ -797,7 +765,7 @@
          {set $dx_pos_current_interval {elem $dx_pos_interval_list $dx_pos_remapper_array_number}} ;1 unit
          DX_TRANSLATE_POS_VARIABLES_TO_LOCAL
          {do
-            ($arr {find $dx_settings_main $this_state view})
+            ($arr {find $syscfg dx_settings $this_state view})
             ($data {array 0})
             {foreach $entry $arr
                {if {!= $entry view}
@@ -889,8 +857,7 @@
          (kAction_Right LIST_POS_DIREC)
       )
    )
-}
-{push_back $dx_settings_main
+
    (dxState_ChatSettings
       (view
          {sprintf "1: %s" $dx_chat_preset_0}
@@ -918,10 +885,9 @@
             {dx_state dxState_SelectChatPreset}
          )
       )
-      (cancel {dx_state dxState_Advanced})
+      (cancel {dx_state dxState_OnlineFeatures})
    )
-}
-{push_back $dx_settings_main
+
    (dxState_SelectChatPreset
       (view DX_QUICK_CHAT_PHRASES)
       (message 
@@ -944,8 +910,7 @@
       )
       (cancel {dx_state dxState_ChatSettings})
    )
-}
-{push_back $dx_settings_main
+
    (dxState_BotSettings
       (view
          os_dx_bot_skill
@@ -1044,4 +1009,3 @@
          {$this show_options}
       )
    )
-}
