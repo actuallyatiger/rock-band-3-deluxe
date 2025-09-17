@@ -266,6 +266,8 @@
 (mod_highlight_key_desc "Lights up individual lanes on Pro Keys depending on song key")
 (modifier_song_load "This modifier will not take effect until you back out start a new song. Back out now?")
 (mod_independent_track_speeds_desc "Prevent track speeds from syncing down to the lowest difficulty player")
+(mod_karaoke "Karaoke Mode")
+(mod_karaoke_desc "Grab a mic, a friend, and jam out!")
 (mod_kick_bounce "Kick Bounce")
 (mod_kick_bounce_desc "Bounce the track when hitting a kick note")
 (mod_mhx_color_shuffle "Gem Color Shuffle")
@@ -749,6 +751,10 @@
 (os_lyric_display_off_desc "Lyrics are hidden")
 (os_lyric_display_on "Lyric Display: ON")
 (os_lyric_display_on_desc "Lyrics are shown when there is no vocals player, similar to Clone Hero and YARG")
+(os_vox_lyric_display_on "Display with Vocalist: ON")
+(os_vox_lyric_display_on_desc "Lyrics are shown under the vocals highway")
+(os_vox_lyric_display_off "Display with Vocalist: OFF")
+(os_vox_lyric_display_off_desc "Lyrics are hidden when there is a vocals player")
 (os_lyric_highlight_color "Highlight Color...")
 (os_lyric_highlight_color_desc "Change the color of the sang syllables in the lyrics display")
 (os_minus1 "-1")
@@ -1243,6 +1249,8 @@
 (dx_setlist_infinite_desc "You've played the endless setlists, now play all 3 back to back in this absolute gauntlet of a set.")
 (help_back "BACK")
 (help_search "HOLD FOR SEARCH")
+(help_search_keyboard "START TYPING TO SEARCH")
+(help_keyboard "SHOW KEYBOARD")
 (os_blnk " ")
 (os_more_info_toggle_off "Hold for metadata: OFF")
 #ifdef HX_PS3
@@ -1260,16 +1268,12 @@
 (overshell_real_bass_22 "Pro Bass 22")
 (press_to_load_meta "Hold <alt>b</alt> to load metadata")
 (song_search "Song Search")
-#ifdef NOT_YET_MERGED
-#ifdef RB3E
 (song_search_desc "Search for Song Title or Artist Name")
 (song_search_title "Song/Artist")
-#endif
-#endif
-#ifndef NOT_YET_MERGED
-(song_search_desc "Search for Song Title or Shortname")
-(song_search_title "Song Title")
-#endif
+(search_cache_generate_button "Generate Search Cache")
+(search_cache_generate_desc "Your search cache is missing or outdated. Would you like to (re)generate it? This will take a while, especially on console.")
+(search_cache_generate_starting "Starting search cache generation...")
+(search_cache_generate_progress "Generating search cache\n({string:done}/{string:total})")
 (the2020s "'20s Songs")
 
 ; Overdrive
@@ -1330,17 +1334,17 @@
 (play_a_show_loading_hw "Loading... This will take some time.\nYour console may freeze temporarily.")
 (play_a_show_loading_emu "Loading... This will take some time.")
 (play_a_show_lock_in "Locking in")
-(play_a_show_long "A long song")
+(play_a_show_long "A long song (4-7m)")
 (play_a_show_med "A completely random song")
 (play_a_show_missing_inst "this song is missing one of your instruments")
 (play_a_show_pick_songs "Loading... <alt>This may take a while...</alt>")
 (play_a_show_pressstart "Press <alt>s</alt>\nto rock!")
-(play_a_show_really_long "A REALLY long song")
-(play_a_show_really_short "A REALLY short song")
+(play_a_show_really_long "A REALLY long song (7m+)")
+(play_a_show_really_short "A REALLY short song (0-2m)")
 (play_a_show_refresh "Refresh Options")
 (play_a_show_refreshed "Options Refreshed")
 (play_a_show_refreshing "Options Refreshing")
-(play_a_show_short "A short song")
+(play_a_show_short "A short song (2-4m)")
 (play_a_show_slow "A slow song")
 (play_a_show_source "A song from %s")
 (play_a_show_submitting "Submitting")
@@ -1885,6 +1889,7 @@
 (cal_audio_desc_pad "This test determines the amount of Audio Latency in your system. Every time you hear a tick, press the A button.")
 #endif
 (calibration_skip "Continue")
+(choose_setlist "Play a Setlist / Battle")
 #ifdef HX_PS3
 (community_no_server_warning "Couldn't connect to GoCentral. \n\nYou won't be able to access the leaderboards.  Continue anyway?")
 #endif
@@ -1948,6 +1953,7 @@
 (pro_keys "Pro Keys")
 (record_label_connection_required "You must be connected to GoCentral to use this feature.")
 (record_label_registering "Registering Record Label with GoCentral...")
+(view_setlists "Setlists / Battles")
 (setlist_lrbendless_desc "After this setlist, you'll be ready to join the Minifigure collection! So small, so exhausted!")
 (setlist_rb1endless_desc "You can now play The Endless Setlist. Our prayers are with you.")
 (setlist_rb2endless_desc "Are you getting tired of how exceedingly awesome you are? Looking for a REAL challenge? How about ALL THE SONGS IN THE FREAKING GAME IN A ROW WITH NO BREAKS? Try the Endless Setlist II today, but don't forget to take a nap and hit the bathroom first!!!")
@@ -2057,6 +2063,8 @@
 (high_song_count_warn "High song counts, especially with multiple players, have been known to cause instability issues after prolonged play-time. It is recommended to:\nStick to music video venues\nTurn off song transition cutscenes\nAvoid very long, 10 min+ songs\nOr lower your song count\nYou have been warned.\n\nTo disable this warning go to Deluxe Settings > Advanced > Functional Options > High Song Count Warning")
 (himem_warning "This option does not work on retail hardware and WILL crash on boot if you try anyway. Continue?")
 (ingame_warning "this setting does not work ingame. please use the options from the \qingame settings\q menu.")
+(karaoke_deny "No Vocals for song")
+(karaoke_warning "No Scores, no stars, no instruments, pure vibes. Party on. Saving will be disabled until you restart if you enable this.")
 (os_bgwarn "This will not take effect until you save settings and restart the game.")
 (postfx_warning "Post Processing will not always completely take effect until loading into a new scene. Return to main menu now?")
 (precision_warning "This modifier will decrease the hit window, forcing you to play more accurately and affecting gameplay. Continue?")
@@ -2070,10 +2078,12 @@
 (settings_warning "A dx.dta file already exists. You must delete this first before saving new settings.")
 (theme_save_warning "Would you like to save this track theme for future sessions?")
 (track_theme_overwrite_warning "Entered theme already exists.\nOverwrite?")
+(online_slots_warning "Online requires slot postions to be set back to default. Enter slot options?")
 
 ;ALWAYS KEEP THIS LAST SO IT LOADS ON TOP OF EVERYTHING ELSE
 #include dx_locale_sources.dta
 #include dx_locale_updates_assets.dta
 #include dx_locale_sections.dta
+#include dx_locale_metamusic.dta
 #include dx_locale_tips.dta
 #include dx_locale_latin_1.dta

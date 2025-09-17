@@ -756,6 +756,8 @@
          {set $this_state dxState_TextureMenu}
          {$this show_state kState_OptionsExtras}
       }
+      ;HACK dx settings fucks up the display num on this list in game so just hard set it back whatever sure
+      {if {$this in_game} {options.lst set display_num 6}}
    )
    (update_view
       {handle ($this update_online_options_allowed {! {session_mgr is_busy}})}
@@ -897,34 +899,32 @@
                }
             )
             (overshell_return {$this leave_options})
-            (overshell_online_options
+            ; dx - allow entering the online options state when gocentral/live/liveless is connected
+            ((overshell_online_options go_overshell_online_options live_overshell_online_options liveless_overshell_online_options)
                {set $dx_is_in_chat FALSE}
                {$this show_online_options}
             )
-            (go_overshell_online_options ; dx - allow entering the online options state when gocentral is connected
+            ((overshell_register_online go_overshell_register_online live_overshell_register_online liveless_overshell_register_online)
                {set $dx_is_in_chat FALSE}
-               {$this show_online_options}
-            )
-            (live_overshell_online_options ; dx - allow entering the online options state when live is connected
-               {set $dx_is_in_chat FALSE}
-               {$this show_online_options}
-            )
-            (liveless_overshell_online_options ; dx - allow entering the online options state when liveless is connected
-               {set $dx_is_in_chat FALSE}
-               {$this show_online_options}
-            )
-            (overshell_register_online {$this attempt_register_online})
-            (go_overshell_register_online ; dx - allow entering the online options state when gocentral is connected
-               {set $dx_is_in_chat FALSE}
-               {$this show_online_options}
-            )
-            (live_overshell_register_online ; dx - allow entering the online options state when live is connected
-               {set $dx_is_in_chat FALSE}
-               {$this show_online_options}
-            )
-            (liveless_overshell_register_online ; dx - allow entering the online options state when liveless is connected
-               {set $dx_is_in_chat FALSE}
-               {$this show_online_options}
+               ; dx - prevent going online if slots are not vanilla as it crashes others online
+               {if_else
+                  {&&
+                     {dx_array_eq $dx_instruments_slot_1 (guitar real_guitar keys)}
+                     {dx_array_eq $dx_instruments_slot_2 (drum)}
+                     {dx_array_eq $dx_instruments_slot_3 (vocals)}
+                     {dx_array_eq $dx_instruments_slot_4 (guitar real_guitar keys)}
+                     {! $dx_linear_join_order}
+                  }
+                  {if_else $dx_slot_restart_required
+                     {dx_passive_messenger os_slot_options_warn}
+                     {$this attempt_register_online}
+                  }
+                  {do
+                     {set $in_dx_settings TRUE}
+                     {set $this_state dxState_SlotsOnlineWarn}
+                     {$this show_state kState_OptionsExtras}
+                  }
+               }
             )
             (overshell_dx_quick_chat ; dx - show quick chat instead of online options
                {set $dx_is_in_chat quick}
@@ -2731,6 +2731,10 @@
          {$this update_part_select_list}
          DX_PART_SELECT_HANDLERS
          {dx_auto_endurance_handler}
+         {if {modifier_mgr is_modifier_active mod_karaoke}
+            {$this select_vocal_part TRUE}
+            {{$this get_user} set_track_type kTrackVocals}  
+         }
          {choose_part.lst restart_highlight_matanim}
          {choose_part.lst refresh}
       }
@@ -3107,6 +3111,10 @@
    (song_settings_flow TRUE)
    (part_unresolved TRUE)
    (update_view
+      {if {modifier_mgr is_modifier_active mod_karaoke}
+         {dx_passive_messenger_symbol {localize karaoke_deny}}
+         {$this leave_choose_part}
+      }
       {if_else {== {critical_user_listener get_critical_user} {$this get_user}}
          {handle ($this set_confirm_message overshell_choose_part_denial)}
          {handle ($this set_confirm_message overshell_choose_part_denial_no_part)}
@@ -3297,7 +3305,7 @@
    (song_settings_flow TRUE)
    (shows_extended_mic_arrows TRUE)
    (enter
-      {if {|| $dx_customizer $dx_auto_endurance}
+      {if {|| {modifier_mgr is_modifier_active mod_karaoke} $dx_customizer $dx_auto_endurance}
          {script_task kTaskSeconds
             (delay
                {if_else $dx_auto_endurance
@@ -3349,7 +3357,7 @@
       }
    )
    (exit
-      {if {! {modifier_mgr is_modifier_active mod_auto_play}} ;only write default instruments if autoplay is off
+      {if {&& {! {modifier_mgr is_modifier_active mod_karaoke}} {! {modifier_mgr is_modifier_active mod_fakejuke}} {! {modifier_mgr is_modifier_active mod_auto_play}}} ;only write default instruments if autoplay is off
          {dx_values_dta_writer}
       }
    )
@@ -3364,7 +3372,9 @@
             {fail {set $default_diff0 {$component selected_sym}}}
          }
          ;also write these to dx_values.dta
-         {dx_values_dta_writer}
+         {if {&& {! {modifier_mgr is_modifier_active mod_fakejuke}} {! {modifier_mgr is_modifier_active mod_karaoke}} {! {modifier_mgr is_modifier_active mod_auto_play}}} ;only write default instruments if autoplay is off
+            {dx_values_dta_writer}
+         }
          {switch {choose_diff.lst selected_sym}
             (overshell_easy {$this select_difficulty kDifficultyEasy})
             (overshell_medium {$this select_difficulty kDifficultyMedium})

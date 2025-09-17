@@ -1,5 +1,7 @@
 {set $dx_song_update_hash_old "nothing"}
 #include ../dx_song_update_hash.dta
+#include dx_hyper_finder.dta
+#include dx_keyboard.dta
 
 #ifndef HX_WII {if {file_exists DX_EVENT_FILE_PATH} {dx_event_dta_reader}} #endif
 
@@ -36,6 +38,7 @@
 DX_LOG_CLEAR
 DX_JSON_CLEAR
 DX_CURRENT_SONG_CLEAR
+{set $last_selected 0}
 {set $dx_playlist_array ()}
 {resize $dx_playlist_array 0}
 {write_file DX_PLAYLIST_DTA_PATH $dx_playlist_array}
@@ -77,6 +80,8 @@ DX_CURRENT_SONG_CLEAR
 {set $dx_instruments_aim_slot_2 (guitar real_guitar keys drum vocals)}
 {set $dx_instruments_aim_slot_3 (guitar real_guitar keys drum vocals)}
 {set $dx_instruments_aim_slot_4 (guitar real_guitar keys drum vocals)}
+
+{set $dx_slot_restart_required FALSE}
 
 {set $dx_current_free_cam "Free camera: off"}
 {set $overshell_showing TRUE}
@@ -726,6 +731,7 @@ DX_CURRENT_SONG_CLEAR
 
 ;in game hud
 {set $dx_lyric_display_enabled TRUE}
+{set $dx_vox_lyric_display FALSE}
 {set $dx_crowd_meter_hud dx_on}
 {set $dx_score_meter_visibility TRUE}
 {set $dx_fail_flash TRUE}
@@ -1156,18 +1162,37 @@ DX_CURRENT_SONG_CLEAR
    }
 }
 #ifdef HX_PS3
-{set $tempwrite {find_exists $syscfg missing_song_data}}
-{foreach $entry {read_file "dx/song_updates/songs_yarg.dta"}
-   {push_back $tempwrite $entry}
+{do
+   ($tempwrite {array 0})
+   ($found FALSE)
+   {foreach $entry {find $syscfg missing_song_data}
+      {if {!= $entry "missing_song_data"}
+         {push_back $tempwrite $entry}
+      }
+   }
+   {foreach $entry {read_file "dx/song_updates/songs_yarg.dta"}
+      {if {find_exists $tempwrite {elem $entry 0}}
+         {set $found TRUE}
+         {foreach $entry2 $entry
+            {if {!= $entry2 {elem $entry 0}}
+               {push_back {find $tempwrite {elem $entry 0}} $entry2}
+            }
+         }
+      }
+      {if {! $found}
+         {push_back $tempwrite $entry}
+      }
+      {set $found FALSE}
+   }
+   {write_file {sprint "GD:/dev_hdd0/game/" DX_TITLE_ID "/USRDIR/songs_updates.dta"} $tempwrite}
 }
-{write_file {sprint "GD:/dev_hdd0/game/" DX_TITLE_ID "/USRDIR/songs_updates.dta"} $tempwrite}
-{set $tempwrite FALSE}
-{set $tempwrite ()}
-{foreach $entry {read_file "dx/song_updates/rb3_songs.dta"}
-   {push_back $tempwrite $entry}
+{do
+   ($tempwrite {array 0})
+   {foreach $entry {read_file "dx/song_updates/rb3_songs.dta"}
+      {push_back $tempwrite $entry}
+   }
+   {write_file {sprint "GD:/dev_hdd0/game/" DX_TITLE_ID "/USRDIR/songs.dta"} $tempwrite}
 }
-{write_file {sprint "GD:/dev_hdd0/game/" DX_TITLE_ID "/USRDIR/songs.dta"} $tempwrite}
-{set $tempwrite FALSE}
 #endif
 #ifdef HX_PS3
 {write_file "GD:/dev_hdd0/game/BLUS30463/USRDIR/dx_play_a_show_status.dta"
